@@ -105,3 +105,8 @@ dist
 
 build/
 times.json
+.env.*
+!.env.example
+data/
+work/
+.playwright/

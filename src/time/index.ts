@@ -1,71 +1,52 @@
-import { TCache } from '../files'
-import logger from '../logger'
-
-type TDate = {
-    day: number
-    month: number
-    year: number
-    dayName: string
+export const TIME_ZONE = 'Europe/Prague'
+export function dateKey(now = new Date()) {
+    return new Intl.DateTimeFormat('sv-SE', {
+        timeZone: TIME_ZONE,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(now)
 }
-
-const formatDate = (date: TDate) => `${date.day}.${date.month}.${date.year}`
-const getDayName = (date: TDate) => `${date.dayName}`
-
-const getDate = (unixTime: number) => {
-    let date_ob = new Date(unixTime)
-    const day = date_ob.getDate()
-    const month = date_ob.getMonth() + 1
-    const year = date_ob.getFullYear()
-    const dayName = date_ob.toLocaleDateString('cs-CZ', { weekday: 'long' })
-
-    return { day, month, year, dayName }
+export function addDays(date: string, count: number) {
+    const d = new Date(`${date}T12:00:00Z`)
+    d.setUTCDate(d.getUTCDate() + count)
+    return d.toISOString().slice(0, 10)
 }
-
-const getCurrentDate = () => {
-    const today = Date.now()
-    return getDate(today)
+export const targetDates = (now = new Date()) => {
+    const today = dateKey(now)
+    return [today, addDays(today, 1)]
 }
-
-const getTomorrowDate = () => {
-    const today = new Date()
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return getDate(tomorrow.getTime())
-}
-
-const parseDateFromCache = (inputDate: string) => {
-    const [day, month, year] = inputDate.split('.')
-    const outputDate = new Date(
-        Number(year),
-        Number(month) - 1,
-        Number(day),
-        0,
-        0,
-        0
+export function isDate(value: string) {
+    return (
+        /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+        !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) &&
+        new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
     )
-    return outputDate
 }
-
-const getCustomDate = (date: Date) => {
-    const day = new Date(date)
-    return getDate(day.getTime())
-}
-
-const hasDateInCache = (date: string, cache: TCache) => {
-    return typeof cache[date] !== 'undefined'
-}
-
-const hasDatesInCache = (dates: string[], cache: TCache) => {
-    return dates.every((date) => hasDateInCache(date, cache))
-}
-
-export {
-    getCurrentDate,
-    getTomorrowDate,
-    parseDateFromCache,
-    getCustomDate,
-    hasDateInCache,
-    hasDatesInCache,
-    formatDate,
-    getDayName,
+export const displayDate = (date: string) =>
+    new Intl.DateTimeFormat('cs-CZ', {
+        timeZone: TIME_ZONE,
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    }).format(new Date(`${date}T12:00:00Z`))
+export const displayTimestamp = (date: string) =>
+    new Intl.DateTimeFormat('cs-CZ', {
+        timeZone: TIME_ZONE,
+        day: 'numeric',
+        month: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(date))
+export function currentMinute(now = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: TIME_ZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+    }).formatToParts(now)
+    return (
+        Number(parts.find((p) => p.type === 'hour')!.value) * 60 +
+        Number(parts.find((p) => p.type === 'minute')!.value)
+    )
 }

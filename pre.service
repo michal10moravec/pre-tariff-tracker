@@ -1,16 +1,20 @@
 [Unit]
-Description=PreCrawler
-After=network.target
+Description=PRE low-tariff schedule
+After=network-online.target
 
 [Service]
-ExecStart=/home/pi/.nvm/versions/node/v18.16.0/bin/node build/index.js
-
-WorkingDirectory=/home/pi/GitHub/pre-scraper
-StandardOutput=syslog
-StardardError=syslog
-SyslogIndentifier=pre_crawler
-User=pi
-Group=pi
+Type=simple
+# Adjust these two paths for the actual account and Node installation.
+WorkingDirectory=%h/pre-scraper
+ExecStart=/usr/bin/node build/index.js
+Environment=NODE_ENV=production
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=550
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pre-scraper
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
