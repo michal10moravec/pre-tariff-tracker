@@ -7,7 +7,7 @@
     "main": "build/index.js",
     "scripts": {
         "dev": "tsx watch src/index.ts",
-        "build": "tsc",
+        "build": "node scripts/build-assets.mjs && tsc",
         "start": "node build/index.js",
         "check": "tsc --noEmit",
         "test": "tsx --test tests/*.test.ts",

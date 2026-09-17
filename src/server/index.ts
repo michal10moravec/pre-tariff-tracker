@@ -1,4 +1,5 @@
 import http from 'node:http'
+import { assets } from './assets'
 import { getPage, getScript, getStyles } from './html'
 import { ScheduleService } from '../service'
 export function createServer(service: ScheduleService) {
@@ -8,7 +9,7 @@ export function createServer(service: ScheduleService) {
         res.setHeader('Cache-Control', 'no-store')
         res.setHeader(
             'Content-Security-Policy',
-            "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
+            "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self'; manifest-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
         )
         const send = (status: number, type: string, body: string) => {
             res.writeHead(status, { 'Content-Type': `${type}; charset=utf-8` })
@@ -44,6 +45,12 @@ export function createServer(service: ScheduleService) {
             if (!['GET', 'HEAD'].includes(req.method || '')) {
                 res.setHeader('Allow', 'GET, HEAD')
                 send(405, 'text/plain', 'Nepodporovaná metoda.')
+                return
+            }
+            const asset = Object.hasOwn(assets, url.pathname) ? assets[url.pathname] : undefined
+            if (asset) {
+                res.writeHead(200, {'Content-Type': asset.type})
+                res.end(req.method === 'HEAD' ? undefined : asset.body)
                 return
             }
             switch (url.pathname) {
