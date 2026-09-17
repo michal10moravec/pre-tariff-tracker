@@ -21,13 +21,18 @@ test('real browser: cookies before login, changed IDs, existing day panels', asy
             )
         await page.route('https://www.pre.cz/**', (route) =>
             route.fulfill({
-                contentType: 'text/html',
+                // Fulfilled HTML has no HTTP charset unless explicitly supplied.
+                contentType: 'text/html; charset=utf-8',
                 body: route.request().url().includes('/neprihlaseny-uzivatel/')
                     ? loginHtml
                     : `<section id="component-hdo"><h3>Časy spínání</h3><a href="#">Dnes</a><a href="#">Zítra</a>${today}${tomorrow}</section>`,
             })
         )
         await page.goto(PRE_LOGIN_PAGE)
+        assert.equal(
+            await page.evaluate(() => document.characterSet),
+            'UTF-8'
+        )
         await login(
             page,
             loadConfig({
